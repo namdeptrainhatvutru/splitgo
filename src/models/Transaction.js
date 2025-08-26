@@ -28,12 +28,16 @@ const Transaction = sequelize.define('Transaction', {
         allowNull: false
     },
     by: {
-        type: DataTypes.INTEGER,
-        allowNull: false
+            type: DataTypes.INTEGER,
+            allowNull: false,
     },
     date :{
         type : DataTypes.STRING,
         allowNull: true
+        },
+    split: {
+            type: DataTypes.JSON,
+            allowNull: true 
     }
 }, {
     tableName: 'Transactions',

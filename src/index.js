@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
 sequelize.authenticate().then(() => {
     console.log('Connect to MySQL database successfully!');
     // Thêm đoạn này để sync bảng
-    sequelize.sync({alter: true})
+    sequelize.sync()
         .then(() => {
             console.log('Database synced!');
         })

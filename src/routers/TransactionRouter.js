@@ -12,4 +12,10 @@ router.get('/group/:group_id', TransactionController.getGroupTransactions);
 // Lấy danh sách transaction của user
 router.get('/user/:user_id', TransactionController.getUserTransactions);
 
+router.put('/update/:id', TransactionController.UpdateSpilt);
+
+router.get('/:id', TransactionController.getTransactionById);
+
+router.delete('/delete/:id', TransactionController.deleteTransaction);
+
 module.exports = router;

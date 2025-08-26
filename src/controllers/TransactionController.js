@@ -115,6 +115,104 @@ class TransactionController {
             });
         }
     }
+    
+    async UpdateSpilt(req, res) {
+        try {
+            const { id } = req.params;
+            const { split } = req.body;
+
+            const transaction = await Transaction.findByPk(id);
+            if (!transaction) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Transaction không tồn tại'
+                });
+            }
+
+            transaction.split = split;
+            await transaction.save();
+
+            res.status(200).json({
+                success: true,
+                data: transaction
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+    async getTransactionById(req, res) {
+        try {
+            const { id } = req.params;
+
+            const transaction = await Transaction.findByPk(id, {
+                include: [
+                    {
+                        model: User,
+                        as: 'creator',
+                        attributes: ['id', 'name']
+                    },
+                    {
+                        model: Group,
+                        include: [{
+                            model: Member,
+                            include: [{
+                                model: User,
+                                attributes: ['id', 'name']
+                            }]
+                        }]
+                    }
+                ]
+            });
+
+            if (!transaction) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Transaction không tồn tại'
+                });
+            }
+
+            res.status(200).json({
+                success: true,
+                data: transaction
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+        async deleteTransaction(req, res) {
+        try {
+            const { id } = req.params;
+
+            const transaction = await Transaction.findByPk(id);
+            if (!transaction) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Transaction không tồn tại'
+                });
+            }
+
+            await transaction.destroy();
+
+            res.status(200).json({
+                success: true,
+                message: 'Xóa transaction thành công'
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
 }
 
 module.exports = new TransactionController();
