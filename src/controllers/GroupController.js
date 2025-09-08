@@ -170,6 +170,29 @@ class GroupController {
                 });
             }
 
+            // Xóa tất cả transactions liên quan đến group và ảnh
+            const { Transaction } = require('../models');
+            const fs = require('fs');
+            const path = require('path');
+
+            const transactions = await Transaction.findAll({
+                where: { group_id: group_id }
+            });
+
+            for (const transaction of transactions) {
+                if (transaction.image) {
+                    const filename = path.basename(transaction.image);
+                    const imagePath = path.join(__dirname, '../../public/image', filename);
+                    if (fs.existsSync(imagePath)) {
+                        fs.unlinkSync(imagePath);
+                    }
+                }
+            }
+
+            await Transaction.destroy({
+                where: { group_id: group_id }
+            });
+
             // Xóa tất cả members của group trước
             await Member.destroy({
                 where: { group_id: group_id }
@@ -188,6 +211,59 @@ class GroupController {
         } catch (error) {
             console.error('Delete group error:', error);
             return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+
+    async getGroupImages(req, res) {
+        try {
+            const { group_id } = req.params;
+
+            // Kiểm tra group có tồn tại không
+            const group = await Group.findByPk(group_id);
+            if (!group) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Group không tồn tại'
+                });
+            }
+
+            const { Transaction } = require('../models');
+            
+            // Lấy tất cả transactions của group có ảnh
+            const transactions = await Transaction.findAll({
+                where: {
+                    group_id: group_id,
+                    image: {
+                        [Op.ne]: null  // Chỉ lấy các transaction có ảnh
+                    }
+                },
+                attributes: ['id', 'title', 'image', 'amount']
+            });
+
+            // Tạo danh sách ảnh
+            const images = transactions.map(transaction => ({
+                transaction_id: transaction.id,
+                title: transaction.title,
+                image_url: transaction.image,
+                amount: transaction.amount
+            }));
+
+            res.json({
+                success: true,
+                data: {
+                    group_id: group_id,
+                    group_title: group.title,
+                    total_images: images.length,
+                    images: images
+                }
+            });
+
+        } catch (error) {
+            console.error('Get group images error:', error);
+            res.status(500).json({
                 success: false,
                 message: error.message
             });

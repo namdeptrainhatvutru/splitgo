@@ -8,14 +8,14 @@ const genneralAccessToken = (payload) => {
 }
 
 const genneralRefreshToken = (payload) => {
-    const refresh_token = jwt.sign({ ...payload }, process.env.REFRESH_TOKEN, { expiresIn: '7d' })
+    const refresh_token = jwt.sign({ ...payload }, process.env.REFRESH_TOKEN, { expiresIn: '30d' })
     return refresh_token
 }
 
 const refreshTokenJwtService = (token) => {
     try {
         const decoded = jwt.verify(token, process.env.REFRESH_TOKEN)
-        const access_token = genneralAccessToken({ id: decoded.id, role: decoded.role })
+        const access_token = genneralAccessToken({ id: decoded.id })
         
         return {
             status: "Ok",

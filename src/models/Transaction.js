@@ -38,6 +38,10 @@ const Transaction = sequelize.define('Transaction', {
     split: {
             type: DataTypes.JSON,
             allowNull: true 
+    },
+    image: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 }, {
     tableName: 'Transactions',

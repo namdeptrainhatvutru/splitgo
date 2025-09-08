@@ -1,10 +1,10 @@
 const express = require('express');
-const TransactionController = require('../controllers/TransactionController');
-
 const router = express.Router();
+const TransactionController = require('../controllers/TransactionController');
+const upload = require('../middlewares/uploadImage');
 
 // Tạo transaction mới
-router.post('/create', TransactionController.createTransaction);
+router.post('/create', upload.single('image'), TransactionController.createTransaction);
 
 // Lấy danh sách transaction của group
 router.get('/group/:group_id', TransactionController.getGroupTransactions);
@@ -17,5 +17,7 @@ router.put('/update/:id', TransactionController.UpdateSpilt);
 router.get('/:id', TransactionController.getTransactionById);
 
 router.delete('/delete/:id', TransactionController.deleteTransaction);
+
+router.put('/:id/image', upload.single('image'), TransactionController.addImageToTransaction);
 
 module.exports = router;

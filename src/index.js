@@ -9,6 +9,7 @@ const routers = require('./routers')
 const sequelize = require('./config/sequelize')
 const PORT = process.env.PORT || 3000;
 app.use(express.json());
+app.use('/image', express.static('public/image'));
 
 routers(app)
 
@@ -23,7 +24,7 @@ app.get('/', (req, res) => {
 sequelize.authenticate().then(() => {
     console.log('Connect to MySQL database successfully!');
     // Thêm đoạn này để sync bảng
-    sequelize.sync()
+    sequelize.sync() // Sử dụng { force: true } nếu bạn muốn xóa và tạo lại bảng (dữ liệu sẽ mất)
         .then(() => {
             console.log('Database synced!');
         })

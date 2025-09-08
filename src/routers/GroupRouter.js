@@ -15,4 +15,5 @@ router.get('/:group_id/members', GroupController.getGroupMembers);
 // Lấy danh sách group của user
 router.get('/user/:user_id', GroupController.getUserGroups);
 router.delete('/:group_id', GroupController.deleteGroup);
+router.get('/:group_id/images', GroupController.getGroupImages);
 module.exports = router;

@@ -8,6 +8,22 @@ const register = async (req, res) => {
 
     try {
         const { name, password, email } = req.body;
+        // check name tồn tại
+        if (!name || !password || !email) {
+            return res.status(400).json({ error: 'Vui lòng điền đầy đủ thông tin' });
+        }
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
+            return res.status(400).json({status : "err", error: 'Email này đã được đăng ký' });
+        }
+        const existingNameUser = await User.findOne({ where: { name } });
+        if (existingNameUser) {
+            return res.status(400).json({ status : "err",error: 'Tên này đã được sử dụng, vui lòng chọn tên khác' });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 6 ký tự' });
+        }
+        // Mã hóa mật khẩu
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = await User.create({ name, password: hashedPassword, email });
         res.json({
@@ -110,10 +126,53 @@ const getAllUsers = async (req, res) => {
         });
     }
 };
+const refreshToken = async (req, res) => {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+        return res.status(400).json({
+            status: "Err",
+            message: "Token không được để trống"
+        });
+    }
+    const result = jwtService.refreshTokenJwtService(refreshToken);
+    if (result.status === "Err") {
+        return res.status(401).json(result);
+    }
+    return res.json(result);
+}
+const updateName = async (req, res) => {
+    try {
+        const { id } = req.params; // Giả sử bạn đã xác thực và có user id trong req.user
+        const { name } = req.body;
+
+        if (!name) {
+            return res.status(400).json({ error: 'Tên mới không được để trống' });
+        }
+
+        // Kiểm tra tên đã tồn tại chưa
+        const existingNameUser = await User.findOne({ where: { name } });
+        if (existingNameUser) {
+            return res.status(400).json({ error: 'Tên này đã được sử dụng, vui lòng chọn tên khác' });
+        }
+
+        // Cập nhật tên
+        await User.update({ name }, { where: { id } });
+
+        return res.json({
+            status: 'OK',
+            message: 'Cập nhật tên thành công',
+            name
+        });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+};
 
 module.exports = {
     register,
     login,
     googleLogin,
-    getAllUsers  // Thêm getAllUsers vào exports
+    getAllUsers,
+    refreshToken,
+    updateName // Thêm updateName vào exports
 };
