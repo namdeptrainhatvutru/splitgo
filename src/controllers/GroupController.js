@@ -112,34 +112,52 @@ class GroupController {
         try {
             const user_id = req.params.user_id;
 
-            // Tìm tất cả groups mà user tham gia
-            const groups = await Group.findAll({
-                include: [
-                    {
-                        model: Member,
-                        include: [
-                            {
-                                model: User,
-                                attributes: ['id', 'name', 'email']  // Chỉ lấy các trường cần thiết của User
-                            }
-                        ]
-                    }
-                ],
-                where: {
-                    [Op.or]: [
-                        { user_id: user_id },  // Groups user sở hữu
-                        { '$Members.user_id$': user_id }  // Groups user là thành viên
-                    ]
-                }
+            // Bước 1: Tìm tất cả group_ids mà user tham gia
+            const userMemberships = await Member.findAll({
+                where: { user_id },
+                attributes: ['group_id']
             });
 
-            if (!groups || groups.length === 0) {
+            const groupIds = userMemberships.map(membership => membership.group_id);
+
+            // Bước 2: Tìm groups mà user sở hữu
+            const ownedGroups = await Group.findAll({
+                where: { user_id },
+                attributes: ['id']
+            });
+
+            const ownedGroupIds = ownedGroups.map(group => group.id);
+
+            // Bước 3: Gộp tất cả group IDs
+            const allGroupIds = [...new Set([...groupIds, ...ownedGroupIds])];
+
+            if (allGroupIds.length === 0) {
                 return res.status(200).json({
                     success: true,
                     data: [],
                     message: 'User không có group nào'
                 });
             }
+
+            // Bước 4: Lấy tất cả groups với tất cả members
+            const groups = await Group.findAll({
+                where: {
+                    id: {
+                        [Op.in]: allGroupIds
+                    }
+                },
+                include: [
+                    {
+                        model: Member,
+                        include: [
+                            {
+                                model: User,
+                                attributes: ['id', 'name', 'email']
+                            }
+                        ]
+                    }
+                ]
+            });
 
             res.status(200).json({
                 success: true,
